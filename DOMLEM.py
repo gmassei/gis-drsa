@@ -299,7 +299,6 @@ def check_rules(EXAMPLES,e,B,rule_type):
 
 def find_rules(EXAMPLES,approximation,header,rule_type):
 	'''find roules from INFOSYS'''
-	
 	B=approximation['objects'][:]
 	#print 'approximation [B]', B
 	G=B[:]
@@ -324,9 +323,8 @@ def find_rules(EXAMPLES,approximation,header,rule_type):
 				S=list(set(S) & (set(covered.keys())))			
 			e=check_rules(static_examples,e,B,rule_type)
 			E.append(e)
-			G=list((set(B))-(set(rules_cover(static_examples,E,rule_type)))) # N.B. thr rules_cover function act on original set of examples
 			#remove examples covered by RULE
-			EXAMPLES=remove_objects(EXAMPLES,rules_cover(EXAMPLES,E,rule_type))
+			G=list((set(B))-(set(rules_cover(static_examples,E,rule_type)))) # N.B. rules_cover function act on original set of examples
 	return E		
 
 def format_rules(rules,RULES,header):
@@ -378,50 +376,51 @@ def print_rules(RULES,infosystem):
 		
 def main():
 	"""main function for stand alone program"""
-	try:
-		start=time()
-		print 'start:', ctime(time())
+	#try:
+	start=time()
+	print 'start:', ctime(time())
 
-		currentDIR = unicode(os.path.abspath( os.path.dirname(__file__)))
-		infosystem=file2infosystem(currentDIR+"\\example.isf")
-		#infosystem=file2infosystem('example.isf')
-		decision_class=union_classes(infosystem)
-		downward_union_classes(infosystem,decision_class)
+	currentDIR = unicode(os.path.abspath( os.path.dirname(__file__)))
+	infosystem=file2infosystem(currentDIR+"\\umbria.isf")
+	#infosystem=file2infosystem('example.isf')
+	decision_class=union_classes(infosystem)
+	downward_union_classes(infosystem,decision_class)
 
-		up_class=upward_union_class(infosystem,decision_class)
-		dw_class=downward_union_classes(infosystem,decision_class)
+	up_class=upward_union_class(infosystem,decision_class)
+	dw_class=downward_union_classes(infosystem,decision_class)
 
-		dominating=dominating_set(infosystem)
-		dominated=dominated_set(infosystem)
+	dominating=dominating_set(infosystem)
+	dominated=dominated_set(infosystem)
 
-		##    upward union class
-		lower_appx_up=lower_approximation(up_class, dominating, decision_class) #lower approximation of upward union for type 1 rules
-		upper_approximation(up_class, dominated, decision_class)  #upper approximation of upward union
+	##    upward union class
+	lower_appx_up=lower_approximation(up_class, dominating, decision_class) #lower approximation of upward union for type 1 rules
+	upper_approximation(up_class, dominated, decision_class)  #upper approximation of upward union
 
-		##    downward union class
-		lower_appx_dw=lower_approximation(dw_class, dominated, decision_class) # lower approximation of  downward union for type 3 rules
-		#upper_approximation(dw_class, dominating, decision_class ) # upper approximation of  downward union
+	##    downward union class
+	lower_appx_dw=lower_approximation(dw_class, dominated, decision_class) # lower approximation of  downward union for type 3 rules
+	#upper_approximation(dw_class, dominating, decision_class ) # upper approximation of  downward union
 
-			
-		header=infosystem['attributes']
-		RULES=[]
-	## *** AT LEAST {>= Class} - Type 1 rules *** "
-		for lower in lower_appx_up[1:]:
-			EXAMPLES=infosystem['examples'].copy()
-			rules=find_rules(EXAMPLES,lower,header,"one")
-			RULES=format_rules(rules,RULES,header)
-	##  *** AT MOST {<= Class} - Type 3 rules ***"
-		for lower in lower_appx_dw[:-1]:
-			EXAMPLES=infosystem['examples'].copy()
-			rules=find_rules(EXAMPLES,lower,header,"three")
-			RULES=format_rules(rules,RULES,header)
-		print_rules(RULES,infosystem)
-		end=time()
-		print "Time -> %.4f s" % (end-start)
-		return 0
-	except TypeError:
-		print "\n\t Computing error. Exiting"
-		sys.exit(0)
+		
+	header=infosystem['attributes']
+	RULES=[]
+## *** AT LEAST {>= Class} - Type 1 rules *** "
+	for lower in lower_appx_up[1:]:
+		EXAMPLES=infosystem['examples'].copy()
+		rules=find_rules(EXAMPLES,lower,header,"one")
+		RULES=format_rules(rules,RULES,header)
+##  *** AT MOST {<= Class} - Type 3 rules ***"
+	for lower in lower_appx_dw[:-1]:
+		EXAMPLES=infosystem['examples'].copy()
+		rules=find_rules(EXAMPLES,lower,header,"three")
+		RULES=format_rules(rules,RULES,header)
+	print_rules(RULES,infosystem)
+	
+	end=time()
+	print "Time -> %.4f s" % (end-start)
+	return 0
+	#except TypeError:
+		#print "\n\t Computing error. Exiting"
+		#sys.exit(0)
 
 ###########execute the script##########################
 if __name__=='__main__':
