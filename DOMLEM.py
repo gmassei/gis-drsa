@@ -373,57 +373,89 @@ def print_rules(RULES,infosystem):
 	outfile.write("Time:%s" % (ctime()))
 	outfile.close()
 	return 0
-		
+
+def compareRules(E1,E2):
+	"""compare two rules for minimality check"""
+	check=0
+	if (len(E1)==len(E2)):
+		for e1,e2 in zip(E1,E2):
+			check=0
+			if (e1['preference']=='gain') and (e1['sign']==e2['sign'] and e1['label']==e2['label'] \
+				and e1['condition']<=e2['condition'] and e1['class']>e2['class']):
+					check=1
+			elif (e1['preference']=='cost') and (e1['sign']==e2['sign'] and e1['label']==e2['label'] \
+				and e1['condition']>=e2['condition'] and e1['class']<e2['class']):
+					check=1
+			else:
+				check=check
+	return check
+			 
+			 
+def minimality(RULES):
+	"""check minimality for all rules"""
+	minRULES=[E for E in RULES]
+	for E1 in RULES:
+			for E2 in RULES:
+				chek=compareRules(E1,E2)
+				if chek==1:
+					
+					minRULES.remove(E2)
+	return minRULES
+	
 def main():
 	"""main function for stand alone program"""
-	#try:
-	start=time()
-	print 'start:', ctime(time())
+	try:
+		start=time()
+		print 'start:', ctime(time())
 
-	currentDIR = unicode(os.path.abspath( os.path.dirname(__file__)))
-	infosystem=file2infosystem(currentDIR+"\\umbria.isf")
-	#infosystem=file2infosystem('example.isf')
-	decision_class=union_classes(infosystem)
-	downward_union_classes(infosystem,decision_class)
+		currentDIR = unicode(os.path.abspath( os.path.dirname(__file__)))
+		infosystem=file2infosystem(currentDIR+"\\umbria.isf")
+		#infosystem=file2infosystem('example.isf')
+		decision_class=union_classes(infosystem)
+		downward_union_classes(infosystem,decision_class)
 
-	up_class=upward_union_class(infosystem,decision_class)
-	dw_class=downward_union_classes(infosystem,decision_class)
+		up_class=upward_union_class(infosystem,decision_class)
+		dw_class=downward_union_classes(infosystem,decision_class)
 
-	dominating=dominating_set(infosystem)
-	dominated=dominated_set(infosystem)
+		dominating=dominating_set(infosystem)
+		dominated=dominated_set(infosystem)
 
-	##    upward union class
-	lower_appx_up=lower_approximation(up_class, dominating, decision_class) #lower approximation of upward union for type 1 rules
-	upper_approximation(up_class, dominated, decision_class)  #upper approximation of upward union
+		##    upward union class
+		lower_appx_up=lower_approximation(up_class, dominating, decision_class) #lower approximation of upward union for type 1 rules
+		upper_appx_up=upper_approximation(up_class, dominated, decision_class)  #upper approximation of upward union
 
-	##    downward union class
-	lower_appx_dw=lower_approximation(dw_class, dominated, decision_class) # lower approximation of  downward union for type 3 rules
-	#upper_approximation(dw_class, dominating, decision_class ) # upper approximation of  downward union
+		##    downward union class
+		lower_appx_dw=lower_approximation(dw_class, dominated, decision_class) # lower approximation of  downward union for type 3 rules
+		upper_appx_dw=upper_approximation(dw_class, dominating, decision_class ) # upper approximation of  downward union
+			
+		header=infosystem['attributes']
+		RULES=[]
+	##  *** AT MOST {<= Class} - Type 3 rules ***"
+		for lower in lower_appx_dw[:-1]:
+			EXAMPLES=infosystem['examples'].copy()
+			rules=find_rules(EXAMPLES,lower,header,"three")
+			RULES=format_rules(rules,RULES,header)
+	## *** AT LEAST {>= Class} - Type 1 rules *** "
+		for lower in lower_appx_up[1:]:
+			EXAMPLES=infosystem['examples'].copy()
+			rules=find_rules(EXAMPLES,lower,header,"one")
+			RULES=format_rules(rules,RULES,header)
 
-		
-	header=infosystem['attributes']
-	RULES=[]
-## *** AT LEAST {>= Class} - Type 1 rules *** "
-	for lower in lower_appx_up[1:]:
-		EXAMPLES=infosystem['examples'].copy()
-		rules=find_rules(EXAMPLES,lower,header,"one")
-		RULES=format_rules(rules,RULES,header)
-##  *** AT MOST {<= Class} - Type 3 rules ***"
-	for lower in lower_appx_dw[:-1]:
-		EXAMPLES=infosystem['examples'].copy()
-		rules=find_rules(EXAMPLES,lower,header,"three")
-		RULES=format_rules(rules,RULES,header)
-	print_rules(RULES,infosystem)
-	
-	end=time()
-	print "Time -> %.4f s" % (end-start)
-	return 0
-	#except TypeError:
-		#print "\n\t Computing error. Exiting"
-		#sys.exit(0)
+			
+		RULES=minimality(RULES)
+		print_rules(RULES,infosystem)
+		end=time()
+		print "Time -> %.4f s" % (end-start)
+		return 0
+	except TypeError:
+		print "\n\t Computing error. Exiting"
+		sys.exit(0)
 
 ###########execute the script##########################
 if __name__=='__main__':
 	main()
 #######################################################
 
+"""Since a decision rule represents an implication, by a minimal decision rule we under-
+stand such an implication that there is no other implication with an antecedent
+of at least the same weakness and a consequent of at least the same strength."""
