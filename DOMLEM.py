@@ -381,10 +381,10 @@ def compareRules(E1,E2):
 		for e1,e2 in zip(E1,E2):
 			check=0
 			if (e1['preference']=='gain') and (e1['sign']==e2['sign'] and e1['label']==e2['label'] \
-				and e1['condition']<=e2['condition'] and e1['class']>e2['class']):
+				and e1['condition']==e2['condition'] and e1['class']>e2['class']):
 					check=1
 			elif (e1['preference']=='cost') and (e1['sign']==e2['sign'] and e1['label']==e2['label'] \
-				and e1['condition']>=e2['condition'] and e1['class']<e2['class']):
+				and e1['condition']==e2['condition'] and e1['class']<e2['class']):
 					check=1
 			else:
 				check=check
@@ -409,7 +409,7 @@ def main():
 		print 'start:', ctime(time())
 
 		currentDIR = unicode(os.path.abspath( os.path.dirname(__file__)))
-		infosystem=file2infosystem(currentDIR+"\\umbria.isf")
+		infosystem=file2infosystem(currentDIR+"\\example.isf")
 		#infosystem=file2infosystem('example.isf')
 		decision_class=union_classes(infosystem)
 		downward_union_classes(infosystem,decision_class)
